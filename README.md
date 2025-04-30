@@ -1,98 +1,131 @@
-# Triple-S: A Simple Storage Service
+# ☕ Hot Coffee - Coffee Shop Management System
 
-Triple-S (Simple Storage Service) is a lightweight cloud storage system inspired by Amazon S3. It provides basic functionalities for bucket and object management through a RESTful API, allowing users to create buckets, upload files, and retrieve them.
+A RESTful API backend for managing coffee shop operations, built with Go. Handles orders, menu items, inventory management, and sales reporting.
 
 ## Features
-- Bucket management (create, list, delete buckets)
-- Object operations (upload, retrieve, delete objects)
-- RESTful API with XML responses
-- Data persistence using CSV for metadata storage
-- Configurable server port and storage directory
-- Error handling for invalid requests and conflicts
 
-## Installation
-Ensure you have [Go](https://go.dev/) installed, then clone this repository:
+- **Layered Architecture**: Clean separation of concerns with handler-service-repository layers
+- **JSON File Storage**: Persistent data storage in `data/` directory
+- **Inventory Management**: Automatic stock deduction on order fulfillment
+- **Automatic ID Generation**: Unique IDs for orders, menu items, and ingredients
+- **RESTful API**: Standard HTTP methods and status codes
+- **Logging**: Built-in logging with `log/slog`
+- **Reporting**: Sales analytics and popular items tracking
 
-```sh
-$ git clone https://github.com/yourusername/triple-s.git
-$ cd triple-s
-```
+## Getting Started
 
-Build the project:
+### Prerequisites
+- Go 1.21+ 
+- Make (optional)
 
-```sh
-$ go build -o triple-s .
-```
+### Installation
+```bash
+git clone https://github.com/alisherseitkadyr/hot-coffee.git
+cd hot-coffee
+go build -o hot-coffee .
+Running
+bash
+./hot-coffee --port 8080 --dir data
+API Documentation
+Orders
+Method	Path	Description
+POST	/orders	Create new order
+GET	/orders	List all orders
+GET	/orders/{id}	Get specific order
+PUT	/orders/{id}	Update order
+DELETE	/orders/{id}	Delete order
+POST	/orders/{id}/close	Close an order
+Menu Items
+Method	Path	Description
+POST	/menu	Add new menu item
+GET	/menu	List all menu items
+GET	/menu/{id}	Get specific menu item
+PUT	/menu/{id}	Update menu item
+DELETE	/menu/{id}	Delete menu item
+Inventory
+Method	Path	Description
+POST	/inventory	Add new inventory item
+GET	/inventory	List all inventory items
+GET	/inventory/{id}	Get specific inventory item
+PUT	/inventory/{id}	Update inventory item
+DELETE	/inventory/{id}	Delete inventory item
+Reports
+Method	Path	Description
+GET	/reports/total-sales	Get total sales amount
+GET	/reports/popular-items	List top 3 popular menu items
+Example Usage
+Create Order
+bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "customer_name": "John Doe",
+    "items": [
+      {
+        "product_id": "latte",
+        "quantity": 2
+      }
+    ]
+  }'
+Get Menu Items
+bash
+curl http://localhost:8080/menu
+Add New Menu Item
+bash
+curl -X POST http://localhost:8080/menu \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Iced Coffee",
+    "description": "Chilled coffee with milk",
+    "price": 3.25,
+    "ingredients": [
+      {"ingredient_id": "coffee_beans", "quantity": 15},
+      {"ingredient_id": "milk", "quantity": 100}
+    ]
+  }'
+Check Inventory
+bash
+curl http://localhost:8080/inventory
+Project Structure
+hot-coffee/
+├── cmd/
+│   └── main.go            
+├── internal/
+│   ├── api/               
+│   ├── service/         
+│   └── repository/        
+├── models/              
+├── data/                 
+│   ├── orders.json
+│   ├── menu_items.json
+│   └── inventory.json
+├── go.mod
+└── README.md
+Data Storage
+All data persisted in JSON files in data/ directory
 
-## Usage
-Run the server with the desired port and storage directory:
+Sample initial data created on first run:
 
-```sh
-$ ./triple-s --port 8080 --dir ./data
-```
+menu_items.json: Contains espresso and latte
 
-To display help information:
+inventory.json: Contains coffee beans, water, and milk
 
-```sh
-$ ./triple-s --help
-```
+orders.json: Empty array
 
-## API Endpoints
-### Bucket Management
-#### Create a Bucket
-- **Method:** `PUT`
-- **Endpoint:** `/{BucketName}`
-- **Response:**
-  - `200 OK` on success
-  - `400 Bad Request` for invalid names
-  - `409 Conflict` if the bucket already exists
+Logging
+Uses Go's log/slog package
 
-#### List Buckets
-- **Method:** `GET`
-- **Endpoint:** `/`
-- **Response:**
-  - `200 OK` with an XML list of buckets
+Logs all operations with timestamps
 
-#### Delete a Bucket
-- **Method:** `DELETE`
-- **Endpoint:** `/{BucketName}`
-- **Response:**
-  - `204 No Content` on success
-  - `404 Not Found` if bucket doesn’t exist
-  - `409 Conflict` if the bucket is not empty
+Error details logged with context
 
-### Object Operations
-#### Upload an Object
-- **Method:** `PUT`
-- **Endpoint:** `/{BucketName}/{ObjectKey}`
-- **Headers:**
-  - `Content-Type: <mime-type>`
-  - `Content-Length: <size>`
-- **Response:**
-  - `200 OK` on success
-  - `404 Not Found` if the bucket doesn’t exist
+Error Handling
+Returns appropriate HTTP status codes:
 
-#### Retrieve an Object
-- **Method:** `GET`
-- **Endpoint:** `/{BucketName}/{ObjectKey}`
-- **Response:**
-  - `200 OK` with file content
-  - `404 Not Found` if object doesn’t exist
+400 Bad Request: Invalid input
 
-#### Delete an Object
-- **Method:** `DELETE`
-- **Endpoint:** `/{BucketName}/{ObjectKey}`
-- **Response:**
-  - `204 No Content` on success
-  - `404 Not Found` if object doesn’t exist
+404 Not Found: Resource not found
 
-## Requirements
-- Go 1.18+
-- Only standard Go packages are allowed
+409 Conflict: Duplicate ID
 
-## Contribution
-Feel free to fork this repository and submit pull requests for improvements!
-
-## License
-This project is licensed under the MIT License.
-
+500 Internal Server Error: Unexpected errors
